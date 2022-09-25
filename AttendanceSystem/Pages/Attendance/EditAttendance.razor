@@ -1,0 +1,115 @@
+﻿@page "/edit-attendance/{AttendanceId:int}"
+@using AttendanceSystem.Data
+@using AttendanceSystem.Models
+@inject IAttendanceService AttendanceService
+
+<EditForm Model="@attendance" OnValidSubmit="@OnSubmit" Context="attendanceForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <p>
+        <label for="attendance-title">Attendance Title: </label>
+        <InputText id="attendance-title" @bind-Value="attendance.AttendanceTitle" />
+        <ValidationMessage For="() => attendance.AttendanceTitle" />
+    </p
+    @if (attendance.Attendees != null)
+    {
+        <h3>Attendees:</h3>
+        @foreach (var attendee in attendance.Attendees)
+        {
+            <p>
+                <label for="attendee-name">Name: </label>
+                <InputText id="attendee-name" @bind-Value="attendee.AttendeeName" />
+                <ValidationMessage For="() => attendee.AttendeeName" />
+            </p>
+            <p>
+                <label for="attendance-status">Attendance Status: </label>
+                <InputSelect id="attendance-status" @bind-Value="attendee.AttendanceStatus">
+                    <option value="@AttendanceStatusEnum.Present">Present</option>
+                    <option value="@AttendanceStatusEnum.Late">Late</option>
+                    <option value="@AttendanceStatusEnum.Absent">Absent</option>
+                    <option value="@AttendanceStatusEnum.Exempted">Exempted</option>
+                </InputSelect>
+                <ValidationMessage For="() => attendee.AttendanceStatus" />
+            </p>
+        }
+    }
+    <button type="button" @onclick="toggleAddAttendeeForm">Add Attendee</button>
+    <div class="@AddAttendeeFormCssClass">
+        <EditForm Model="@newAttendee" OnValidSubmit="@AddAttendee" Context="attendeeForm">
+            <p>
+                <label for="newAttendee-name">Name: </label>
+                <InputText id="newAttendee-name" @bind-Value="newAttendee.AttendeeName" />
+                <ValidationMessage For="() => newAttendee.AttendeeName" />
+            </p>
+            <p>
+                <label for="newAttendee-attendance-status">Attendance Status: </label>
+                <InputSelect id="newAttendee-attendance-status" @bind-Value="newAttendee.AttendanceStatus">
+                    <option value="@AttendanceStatusEnum.Present">Present</option>
+                    <option value="@AttendanceStatusEnum.Late">Late</option>
+                    <option value="@AttendanceStatusEnum.Absent">Absent</option>
+                    <option value="@AttendanceStatusEnum.Exempted">Exempted</option>
+                </InputSelect>
+                <ValidationMessage For="() => newAttendee.AttendanceStatus" />
+            </p>
+            <button type="submit">Add new Attendee</button>
+        </EditForm>
+    </div>
+    <p>
+        <label for="date-from">Date From: </label>
+        <InputDate id="date-from" @bind-Value="attendance.DateFrom" />
+        <ValidationMessage For="() => attendance.DateFrom" />
+    </p>
+    <p>
+        <label for="date-to">To: </label>
+        <InputDate id="date-to" @bind-Value="attendance.DateTo" />
+        <ValidationMessage For="() => attendance.DateTo" />
+    </p>
+    <button type="submit">Submit</button>
+    <a href="/view-attendance">
+        <span class="btn btn-danger">
+            Back
+        </span>
+    </a>
+</EditForm>
+
+@code {
+    private string statusMessage;
+    private Attendance attendance = new Attendance();
+    private Attendee newAttendee = new Attendee();
+    private bool collapseAddAttendeeForm = true;
+    private string AddAttendeeFormCssClass => collapseAddAttendeeForm ? "hide" : null;
+
+    [Parameter]
+    public int AttendanceId { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        attendance = await AttendanceService.GetAttendanceAsync(AttendanceId);
+    }
+    private async Task OnSubmit()
+    {
+        var statusUpdate = await AttendanceService.UpdateAttendanceAsync(attendance);
+
+        statusMessage = statusUpdate.Message;
+    }
+    private async Task AddAttendee()
+    {
+        newAttendee.AttendanceId = attendance.AttendanceId;
+
+        var statusUpdate = await AttendanceService.AddAttendeeAsync(newAttendee);
+
+        if(statusUpdate.Status == true)
+        {
+            newAttendee = new Attendee();
+            collapseAddAttendeeForm = true;
+            attendance = await AttendanceService.GetAttendanceAsync(AttendanceId);
+        }
+
+        statusMessage = statusUpdate.Message;
+    }
+    private void toggleAddAttendeeForm() 
+    {
+        collapseAddAttendeeForm = !collapseAddAttendeeForm;
+    }
+}

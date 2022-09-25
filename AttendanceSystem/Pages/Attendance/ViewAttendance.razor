@@ -1,0 +1,72 @@
+﻿@page "/view-attendance"
+@using AttendanceSystem.Data
+@using AttendanceSystem.Models
+@inject IAttendanceService AttendanceService
+
+<h1>Attendance Records</h1>
+
+@if (attendances == null)
+{
+    <!-- Show this if the current user has no data... yet... -->
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <!-- Show the attendances for the current user -->
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Attendance Title</th>
+                <th>No. of Attendees</th>
+                <th>Date From</th>
+                <th>Date To</th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var attendance in attendances)
+            {
+                <tr @key="attendance.AttendanceId">
+                    <td>@attendance.AttendanceTitle</td>
+                    <td>@attendance.Attendees.Count</td>
+                    <td>@attendance.DateFrom</td>
+                    <td>@attendance.DateTo</td>
+                    <td>
+                        <!-- Edit the current attendancesRecord -->
+                        <a href="/edit-attendance/@attendance.AttendanceId">
+                            <span class="btn btn-primary">
+                                Edit
+                            </span>
+                        </a>
+                    </td>
+                    <td>
+                        <!-- Edit the current attendancesRecord -->
+                        <a href="/delete-attendance/@attendance.AttendanceId">
+                            <span class="btn btn-danger">
+                                Delete
+                            </span>
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <p>
+        <!-- Add a new attendancesRecord -->
+        <a href="/add-attendance">
+            <span class="btn btn-success">
+                Add New attendancesRecord
+            </span>
+        </a>
+    </p>
+}
+
+@code {
+    public List<Attendance> attendances;
+
+    protected override async Task OnInitializedAsync()
+    {
+        attendances = await AttendanceService.GetAllAttendanceAsync();
+    }
+}

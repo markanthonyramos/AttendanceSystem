@@ -1,0 +1,80 @@
+﻿@page "/delete-attendance/{AttendanceId:int}"
+@using AttendanceSystem.Data
+@using AttendanceSystem.Models
+@inject IAttendanceService AttendanceService
+@inject NavigationManager NavManager
+
+<div>
+    <div class="mb-3 row">
+        <label for="staticEmail" class="col-sm-2 col-form-label">Attendance Title: </label>
+        <div class="col-sm-10">
+            <input class="form-control" type="text" value="@attendance.AttendanceTitle" readonly>
+        </div>
+    </div>
+    @if (attendance.Attendees != null)
+    {
+        <h6>Attendees:</h6>
+        @foreach (var item in attendance.Attendees)
+        {
+            <div class="mb-3 row">
+                <label for="staticEmail" class="col-sm-2 col-form-label">Name: </label>
+                <div class="col-sm-10">
+                    <input class="form-control" type="text" value="@item.AttendeeName" readonly>
+                </div>
+            </div>
+            <div class="mb-3 row">
+                <label for="staticEmail" class="col-sm-2 col-form-label">Attendance Status: </label>
+                <div class="col-sm-10">
+                    <input class="form-control" type="text" value="@item.AttendanceStatus" readonly>
+                </div>
+            </div>
+            <div class="mb-3 row">
+                <label for="staticEmail" class="col-sm-2 col-form-label">Check In Time: </label>
+                <div class="col-sm-10">
+                    <input class="form-control" type="text" value="@item.CheckInDateTime" readonly>
+                </div>
+            </div> 
+        }
+    }
+    <div class="mb-3 row">
+        <label for="staticEmail" class="col-sm-2 col-form-label">Date From: </label>
+        <div class="col-sm-10">
+            <input class="form-control" type="text" value="@attendance.DateFrom.Date" readonly>
+        </div>
+    </div>
+    <div class="mb-3 row">
+        <label for="staticEmail" class="col-sm-2 col-form-label">Date To: </label>
+        <div class="col-sm-10">
+            <input class="form-control" type="text" value="@attendance.DateTo.Date" readonly>
+        </div>
+    </div>
+    <button class="btn btn-danger" @onclick="OnDelete">
+        Delete
+    </button>
+    <a href="/view-attendance">
+        <span class="btn btn-primary">
+            Back
+        </span>
+    </a>
+</div>
+
+@code {
+    private string statusMessage;
+    private Attendance attendance = new Attendance();
+
+    [Parameter]
+    public int AttendanceId { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        attendance = await AttendanceService.GetAttendanceAsync(AttendanceId);
+    }
+    private async Task OnDelete()
+    {
+        var statusUpdate = await AttendanceService.DeleteAttendanceAsync(attendance);
+
+        statusMessage = statusUpdate.Message;
+
+        NavManager.NavigateTo("/view-attendance");
+    }
+}

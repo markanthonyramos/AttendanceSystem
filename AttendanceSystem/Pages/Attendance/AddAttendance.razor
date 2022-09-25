@@ -1,0 +1,41 @@
+﻿@page "/add-attendance"
+@using AttendanceSystem.Data
+@using AttendanceSystem.Models
+@inject IAttendanceService AttendanceService
+@inject NavigationManager NavManager
+
+<EditForm Model="@attendance" OnValidSubmit="@OnSubmit">
+    <DataAnnotationsValidator />
+
+    <p>
+        <label for="attendance-title">Attendance Title: </label>
+        <InputText id="attendance-title" @bind-Value="attendance.AttendanceTitle" />
+        <ValidationMessage For="() => attendance.AttendanceTitle" />
+    </p>
+    <p>
+        <label for="date-from">Date From: </label>
+        <InputDate id="date-from" @bind-Value="attendance.DateFrom" />
+        <ValidationMessage For="() => attendance.DateFrom" />
+    </p>
+    <p>
+        <label for="date-to">To: </label>
+        <InputDate id="date-to" @bind-Value="attendance.DateTo" />
+        <ValidationMessage For="() => attendance.DateTo" />
+    </p>
+    <button type="submit">Submit</button>
+
+    <ValidationSummary />
+</EditForm>
+
+@code {
+    private string statusMessage;
+    private Attendance attendance = new Attendance();
+
+    private async Task OnSubmit() {
+        var statusUpdate = await AttendanceService.CreateAttendanceAsync(attendance);
+
+        statusMessage = statusUpdate.Message;
+
+        NavManager.NavigateTo("/view-attendance");
+    }
+}
